@@ -15,12 +15,16 @@ function generateChart(chartType) {
     resetCharts();
     switch (chartType){
         case "all":
-            generateLineChart();
+            generateLineChart('#linechart','normal');
+            generateLineChart('#linepercentage','percent');
             generateBarChart();
             generatePieChart();
             break;
         case "line":
-            generateLineChart();
+            generateLineChart('#linechart','normal');
+            break;
+        case "linepercentage":
+            generateLineChart('#linepercentage','percent');
             break;
         case "bar":
             generateBarChart();
@@ -38,7 +42,7 @@ function resetCharts(){
     $j("#piechart").html("");
 }
 
-function generateLineChart(){
+function generateLineChart(htmlLocator, lineChartType){
     var chartCategories = [];
     var chartData ={
         "Failed" : [],
@@ -51,13 +55,24 @@ function generateLineChart(){
         if(chartResult.hasOwnProperty(key)){
             var buildResult = chartResult[key];
             chartCategories.push(key);
-            chartData["Failed"].push(buildResult["Failed"]);
-            chartData["Passed"].push(buildResult["Passed"]);
-            chartData["Skipped"].push(buildResult["Skipped"]);
-            chartData["Total"].push(buildResult["Total"]);
+            var passed = buildResult["Passed"];
+            var failed = buildResult["Failed"];
+            var skipped = buildResult["Skipped"];
+            var total = buildResult["Total"];
+            if(lineChartType == "percent"){
+                chartData["Failed"].push(calculateIndividualPercentage(failed, total));
+                chartData["Passed"].push(calculateIndividualPercentage(passed, total));
+                chartData["Skipped"].push(calculateIndividualPercentage(skipped, total));
+                chartData["Total"].push(calculateIndividualPercentage(total, total));
+            } else {
+                chartData["Failed"].push(failed);
+                chartData["Passed"].push(passed);
+                chartData["Skipped"].push(skipped);
+                chartData["Total"].push(total);
+            }
         }
     }
-    $j(function () {$j("#linechart").highcharts(getLineChartConfig(chartCategories, chartData))});
+    $j(function () {$j(htmlLocator).highcharts(getLineChartConfig(chartCategories, lineChartType, chartData))});
 
 }
 
@@ -171,7 +186,13 @@ function getSelectedRows(){
     return selectedRows;
 }
 
-function getLineChartConfig(chartCategories, chartData){
+function getLineChartConfig(chartCategories, lineChartType, chartData){
+    var yvalue = "";
+    var type = "";
+    if(lineChartType == 'percent') {
+        yvalue = " in percentage (%)";
+        type = ' (%)';
+    }
     var linechart = {
         title: {
             text: 'Build Status',
@@ -185,7 +206,7 @@ function getLineChartConfig(chartCategories, chartData){
         },
         yAxis: {
             title: {
-                text: 'No of tests'
+                text: 'No of tests' + yvalue
             },
             plotLines: [{
                 value: 0,
@@ -211,6 +232,7 @@ function getLineChartConfig(chartCategories, chartData){
         ,
         plotOptions: {
             series: {
+                stacking: lineChartType,
                 cursor: 'pointer',
                 point: {
                     events: {
@@ -221,7 +243,14 @@ function getLineChartConfig(chartCategories, chartData){
                             var skipped = this.series.chart.series[2].data[x1].y;
                             var total = this.series.chart.series[3].data[x1].y;
                             var resultTitle = 'Build details for build: '+x1;
-                            generatePieChart(calculatePercentage(passed,failed,skipped,total),resultTitle);
+                            /*if(lineChartType == 'percent') {
+                                var pieData = [['Passed',   passed],
+                                        ['Failed',       failed],
+                                        ['Skipped',   skipped]];
+                                generatePieChart(pieData,resultTitle)
+                            } else {*/
+                                generatePieChart(calculatePercentage(passed,failed,skipped,total),resultTitle);
+                            /*}*/
 
                         }
                     }
@@ -229,19 +258,19 @@ function getLineChartConfig(chartCategories, chartData){
             }
         },
         series: [{
-            name: 'Passed',
+            name: 'Passed' + type,
             data: chartData["Passed"]
             //color: '#24A516'
         }, {
-            name: 'Failed',
+            name: 'Failed' + type,
             data: chartData["Failed"]
             //color: '#FD0505'
         }, {
-            name: 'Skipped',
+            name: 'Skipped' + type,
             data: chartData["Skipped"]
             //color: '#AEAEAE'
         }, {
-            name: 'Total',
+            name: 'Total' + type,
             data:  chartData["Total"]
         }]
     }
@@ -305,6 +334,11 @@ function calculatePercentage(passed, failed, skipped, total){
     return [['Passed',   passedPercentage],
         ['Failed',       failedPercentage],
         ['Skipped',   skippedPercentage]];
+}
+
+function calculateIndividualPercentage(value, total){
+    var percentage = (value * 100)/total;
+    return percentage;
 }
 
 function getPieChartConfig(inputData, resultTitle){

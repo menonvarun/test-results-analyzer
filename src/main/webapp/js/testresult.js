@@ -5,7 +5,16 @@ function reset(){
     reevaluateChartData = true;
     $j(".table").html("")
 	treeMarkup = "";
+	hideExportOptions();
     resetCharts();
+}
+
+function hideExportOptions() {
+    $j(".exportbuilddetail").hide();
+}
+
+function showExportOptions() {
+    $j(".exportbuilddetail").show();
 }
 
 function populateTemplate(){
@@ -16,6 +25,7 @@ function populateTemplate(){
         treeMarkup = analyzerTemplate(itemsResponse);
         $j(".table").html(treeMarkup);
         addEvents();
+        showExportOptions();
     },this));
 }
 
@@ -120,4 +130,23 @@ function checkParent(node) {
     if ((parentCheckBox.size() > 0) && ($j(parentCheckBox).attr("parentclass") != 'base')) {
         checkParent(parentCheckBox);
     }
+}
+
+function exportBuildDetails(exportType) {
+    var exportConfig = "";
+    switch (exportType){
+        case "pdf":
+            exportConfig = {type:'pdf',pdfFontSize:'7',escape:'false'};
+            break;
+        case "excel":
+            exportConfig = {type:'excel',escape:'false'};
+            break;
+        case "csv":
+            exportConfig = {type:'csv',escape:'false'};
+            break;
+        case "png":
+            exportConfig = {type:'png',escape:'false'};
+            break;
+    }
+    $j('#tree .table').tableExport(exportConfig);
 }

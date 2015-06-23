@@ -9,6 +9,14 @@
 <script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/handlebars-v2.0.0.js"></script>
 <script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/highcharts.js"></script>
 
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/tableExport.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/html2canvas.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/jquery.base64.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/jspdf/libs/sprintf.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/jspdf/jspdf.js"></script>
+<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/table-export/jspdf/libs/base64.js"></script>
+
+
 <script src="http://code.highcharts.com/modules/exporting.js"></script>
 <script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/testresult.js"></script>
 <script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/chart-generator.js"></script>
@@ -49,8 +57,14 @@ Select chart type:
  <select id="reporttype">
    <option value="all">All</option>
    <option value="line">Line</option>
+   <!--<option value="linepercentage">Line(%)</option>-->
    <option value="bar">Bar</option>
    <option value="pie">Pie</option>
+ </select>
+ Select chart calculation method:
+ <select id="charttype">
+    <option value="normal">Count</option>
+    <option value="percent">Percentage</option>
  </select>
 <button class = "charts" id="generatechart">Generate Charts</button>
 <button class = "charts" id="hidecharts">Hide Charts</button>
@@ -77,6 +91,15 @@ Select chart type:
 
 <br/>
 <div id="tree">
+    <div class="exportbuilddetail" style="display:none;">
+        <select id="exporttype">
+            <option value="pdf">Pdf</option>
+            <option value="excel">Excel</option>
+            <option value="csv">Csv</option>
+            <option value="png">Png</option>
+         </select>
+        <button class = "exportbuild" id="exportBuildButton">Export Build Details</button>
+    </div>
    <div class="table">
 
    </div>
@@ -86,6 +109,7 @@ Select chart type:
 </div>
 
 <script>
+
 	$j("#getbuildreport").click(function () {
 		populateTemplate();
 	});
@@ -103,6 +127,11 @@ Select chart type:
     });
     $j("#hidecharts").click(function () {
     		resetCharts();
+    });
+
+    $j("#exportBuildButton").click(function () {
+        var exportType = $j('#exporttype').val();
+        exportBuildDetails(exportType);
     });
 </script>
   </l:main-panel>

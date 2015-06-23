@@ -5,6 +5,7 @@ import hudson.tasks.junit.ClassResult;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ClassResultData;
 
@@ -12,7 +13,7 @@ import net.sf.json.JSONObject;
 
 public class ClassInfo extends Info{
 	
-	private Map<String, TestCaseInfo> tests = new HashMap<String, TestCaseInfo>();
+	private Map<String, TestCaseInfo> tests = new TreeMap<String, TestCaseInfo>();
 	
 	
 	public void putBuildClassResult(Integer buildNumber, ClassResult classResult){
