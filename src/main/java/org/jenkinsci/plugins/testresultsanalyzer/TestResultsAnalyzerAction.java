@@ -26,13 +26,15 @@ import hudson.util.RunList;
 
 public class TestResultsAnalyzerAction extends Actionable implements Action{
 @SuppressWarnings("rawtypes") AbstractProject project;
+	TestResultsAnalyzerExtension extension;
 	private List<Integer> builds = new ArrayList<Integer>() ;
 	
 	ResultInfo resultInfo;
 	
 	
-	public TestResultsAnalyzerAction(@SuppressWarnings("rawtypes") AbstractProject project){
+	public TestResultsAnalyzerAction(@SuppressWarnings("rawtypes") AbstractProject project, TestResultsAnalyzerExtension extension){
 		this.project = project;
+		this.extension = extension;
 	}
 	
 

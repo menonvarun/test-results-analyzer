@@ -1,15 +1,24 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <!--
-    This jelly script is used for per-project configuration.
+    <br/><br/>
+    <f:entry title="${%Generate chart based on test execution}" >
+           <select name="instance.chartBasedOn">
+                <f:option value="count" selected="${instance.chartBasedOn=='count'}" >Count</f:option>
+                <f:option value="percentage" selected="${instance.chartBasedOn=='percentage'}">Percentage</f:option>
+           </select>
+    </f:entry>
+    <f:optionalBlock name="useCustomStatusNames" title="${%Use Custom Names for Passed/Failed/Skipped/NA status}" checked="${instance.useCustomStatusNames}">
+            <f:entry title="${%Passed}" field="passedRepresentation">
+                <f:textbox name="passedRepresentation" value="${instance.passedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%Failed}" field="failedRepresentation">
+                <f:textbox name="failedRepresentation" value="${instance.failedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%Skipped}" field="skippedRepresentation">
+                <f:textbox name="skippedRepresentation" value="${instance.skippedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%NA}" field="naRepresentation">
+                <f:textbox name="naRepresentation" value="${instance.naRepresentation}"/>
+              </f:entry>
+    </f:optionalBlock>
 
-    See global.jelly for a general discussion about jelly script.
-  -->
-
-  <!--
-    Creates a text field that shows the value of the "name" property.
-    When submitted, it will be passed to the corresponding constructor parameter.
-  -->
-  <f:entry title="Name" field="name">
-   <f:checkbox />
-  </f:entry>
 </j:jelly>

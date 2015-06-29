@@ -1,0 +1,24 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:section title="${%Test Results Analyzer}">
+      <f:entry title="${%Generate chart based on test execution}" >
+            <select name="descriptor.chartBasedOn">
+                <f:option value="count" selected="${descriptor.chartBasedOn=='count'}" >Count</f:option>
+                <f:option value="percentage" selected="${descriptor.chartBasedOn=='percentage'}">Percentage</f:option>
+            </select>
+      </f:entry>
+      <f:optionalBlock name="useCustomStatusNames" title="${%Use Custom Names for Passed/Failed/Skipped/NA status}" checked="${descriptor.useCustomStatusNames}">
+              <f:entry title="${%Passed}">
+                <f:textbox name="passedRepresentation" value="${descriptor.passedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%Failed}">
+                <f:textbox name="failedRepresentation" value="${descriptor.failedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%Skipped}">
+                <f:textbox name="skippedRepresentation" value="${descriptor.skippedRepresentation}"/>
+              </f:entry>
+              <f:entry title="${%NA}">
+                <f:textbox name="naRepresentation" value="${descriptor.naRepresentation}"/>
+              </f:entry>
+      </f:optionalBlock>
+  </f:section>
+</j:jelly>
