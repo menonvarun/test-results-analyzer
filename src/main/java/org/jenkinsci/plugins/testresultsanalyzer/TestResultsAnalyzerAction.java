@@ -1,24 +1,20 @@
 package org.jenkinsci.plugins.testresultsanalyzer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import net.sf.json.JSONArray;
 
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.testresultsanalyzer.result.data.BuildData;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ResultInfo;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 
-import jenkins.model.Jenkins;
 import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Actionable;
 import hudson.model.Run;
-import hudson.security.Permission;
 import hudson.tasks.junit.PackageResult;
 import hudson.tasks.junit.TestResult;
 import hudson.tasks.test.AbstractTestResultAction;
@@ -27,6 +23,7 @@ import hudson.util.RunList;
 public class TestResultsAnalyzerAction extends Actionable implements Action{
 @SuppressWarnings("rawtypes") AbstractProject project;
 	private List<Integer> builds = new ArrayList<Integer>() ;
+	private List<BuildData> buildDataList = new ArrayList<BuildData>();
 	
 	ResultInfo resultInfo;
 	
@@ -97,21 +94,33 @@ public class TestResultsAnalyzerAction extends Actionable implements Action{
 		return jsonArray;
 	}
 
-	private JSONArray getBuildsArray(List<Integer> buildList) {
+	private JSONArray getBuildsArray(List<BuildData> buildList) {
 		JSONArray jsonArray = new JSONArray();
-		for (Integer build : buildList) {
-			jsonArray.add(build);
+		for (BuildData build : buildList) {
+			jsonArray.add(build.getJsonObject());
 		}
 		return jsonArray;
 	}
 
-	private List<Integer> getBuildList(int noOfBuilds) {
+	/*private List<Integer> getBuildList(int noOfBuilds) {
 		if ((noOfBuilds <= 0) || (noOfBuilds >= builds.size())) {
 			return builds;
 		}
 		List<Integer> buildList = new ArrayList<Integer>();
 		for (int i = (noOfBuilds - 1); i >= 0; i--) {
 			buildList.add(builds.get(i));
+		}
+		return buildList;
+	}*/
+
+	private List<BuildData> getBuildList(int noOfBuilds) {
+		if ((noOfBuilds <= 0) || (noOfBuilds >= buildDataList.size())) {
+			return buildDataList;
+		}
+
+		List<BuildData> buildList = new ArrayList<BuildData>();
+		for (int i = (noOfBuilds - 1); i >= 0; i--) {
+			buildList.add(buildDataList.get(i));
 		}
 		return buildList;
 	}
@@ -142,6 +151,7 @@ public class TestResultsAnalyzerAction extends Actionable implements Action{
 			while (runIterator.hasNext()) {
 				Run run = runIterator.next();
 				int buildNumber = run.getNumber();
+				buildDataList.add(getBuildData(run));
 				builds.add(run.getNumber());
 				List<AbstractTestResultAction> testActions = run.getActions(hudson.tasks.test.AbstractTestResultAction.class);
 				for (hudson.tasks.test.AbstractTestResultAction testAction : testActions) {
@@ -157,9 +167,20 @@ public class TestResultsAnalyzerAction extends Actionable implements Action{
     @JavaScriptMethod
     public JSONObject getTreeResult(String noOfBuildsNeeded) {
         int noOfBuilds = getNoOfBuildRequired(noOfBuildsNeeded);
-        List<Integer> buildList = getBuildList(noOfBuilds);
+        List<BuildData> buildList = getBuildList(noOfBuilds);
 
         JsTreeUtil jsTreeUtils = new JsTreeUtil();
         return jsTreeUtils.getJsTree(buildList, resultInfo);
     }
+
+	private BuildData getBuildData(Run run) {
+		BuildData buildData= new BuildData();
+
+		buildData.setBuildNumber(run.getNumber());
+		buildData.setStartTime(run.getStartTimeInMillis());
+		buildData.setDuration(run.getDuration());
+		buildData.setScheduledTime(run.getTimeInMillis());
+
+		return buildData;
+	}
 }

@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.testresultsanalyzer;
 import java.util.List;
 import java.util.Set;
 
+import org.jenkinsci.plugins.testresultsanalyzer.result.data.BuildData;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ResultInfo;
 
 import net.sf.json.JSONArray;
@@ -10,12 +11,12 @@ import net.sf.json.JSONObject;
 
 public class JsTreeUtil {
 
-    public JSONObject getJsTree(List<Integer> builds, ResultInfo resultInfo) {
+    public JSONObject getJsTree(List<BuildData> builds, ResultInfo resultInfo) {
         JSONObject tree = new JSONObject();
 
         JSONArray buildJson = new JSONArray();
-        for (Integer buildNumber : builds) {
-            buildJson.add(buildNumber.toString());
+        for (BuildData build : builds) {
+            buildJson.add(build.getJsonObject());
         }
         tree.put("builds", buildJson);
         JSONObject packageResults = resultInfo.getJsonObject();
@@ -36,23 +37,26 @@ public class JsTreeUtil {
         return jsonObject;
     }
 
-    private JSONObject createJson(List<Integer> builds, JSONObject dataJson) {
+    private JSONObject createJson(List<BuildData> builds, JSONObject dataJson) {
         JSONObject baseJson = getBaseJson();
         baseJson.put("text", dataJson.get("name"));
         baseJson.put("type", dataJson.get("type"));
         baseJson.put("buildStatuses", dataJson.get("buildStatuses"));
         JSONObject packageBuilds = dataJson.getJSONObject("builds");
         JSONArray treeDataJson = new JSONArray();
-        for (Integer buildNumber : builds) {
+        for (BuildData buildData : builds) {
+            Integer buildNumber = buildData.getBuildNumber();
             JSONObject build = new JSONObject();
             if (packageBuilds.containsKey(buildNumber.toString())) {
                 JSONObject buildResult = packageBuilds.getJSONObject(buildNumber.toString());
                 //String status = buildResult.getString("status");
                 buildResult.put("buildNumber", buildNumber.toString());
+                buildResult.put("buildInfo", buildData.getJsonObject());
                 build = buildResult;
             } else {
                 build.put("status", "N/A");
                 build.put("buildNumber", buildNumber.toString());
+                build.put("buildInfo", buildData.getJsonObject());
             }
             treeDataJson.add(build);
         }

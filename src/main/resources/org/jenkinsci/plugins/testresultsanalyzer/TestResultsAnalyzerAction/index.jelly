@@ -36,13 +36,17 @@ Last builds and show
   <option value="SKIPPED">SKIPPED</option>  
 </select>
  tests.
-
+Advanced options: <input type="checkbox" id="show-advanced-options" name="show-advanced-options"/>
 <button id="getbuildreport">Get Build Report</button>
 <div class="extrabuttons">
 	<button id="expandall">Expand All</button>
 	<button id="collapseall">Collapse All</button>
 </div>
 </div>
+<div id="advancedOptions" style="display:none">
+     Show build date instead of build number:<input type="checkbox" id="show-build-date" name="show-build-date"/><br/>
+</div>
+
 <div class="chartbuttons">
 Select chart type:
 
@@ -86,6 +90,7 @@ Select chart type:
 </div>
 
 <script>
+    /*$j("#advancedOptions").hide();*/
 	$j("#getbuildreport").click(function () {
 		populateTemplate();
 	});
@@ -103,6 +108,17 @@ Select chart type:
     });
     $j("#hidecharts").click(function () {
     		resetCharts();
+    });
+
+    $j("#show-advanced-options").click(function() {
+        var $this = $j(this);
+
+        if ($this.is(':checked')) {
+            $j("#advancedOptions").show();
+        } else {
+            resetOptions();
+            $j("#advancedOptions").hide();
+        }
     });
 </script>
   </l:main-panel>

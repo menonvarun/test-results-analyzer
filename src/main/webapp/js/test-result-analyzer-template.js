@@ -27,7 +27,7 @@ var tableContent = '<div class="table-row {{parentclass}}-{{addName text}}" pare
 var tableBody = '<div class="heading">' +
     '\n' + '        <div class="table-cell">Chart</div><div class="table-cell">See children</div> <div class="table-cell">Build Number &rArr;<br>Package-Class-Testmethod names &dArr;</div>' +
     '{{#each builds}}' +
-    '\n' + '         <div class="table-cell">{{this}}</div>' +
+    '\n' + '         <div class="table-cell">{{getBuildHeaderName this}}</div>' +
     '{{/each}}' +
     '\n' + '      </div>' +
     '{{#each results}}' +
@@ -111,6 +111,17 @@ Handlebars.registerHelper('addHierarchy', function (context, parentHierarchy, op
     if (parentHierarchy == undefined)
         parentHierarchy = 0;
     context["hierarchyLevel"] = parentHierarchy + 1;
+});
+
+Handlebars.registerHelper('getBuildHeaderName', function (build) {
+    var buildHeaderName = "";
+    if(showBuildDate) {
+        var d = new Date(build.startTime);
+        buildHeaderName = d.toLocaleDateString() + " " + d.toLocaleTimeString();
+    } else {
+        buildHeaderName = build.buildNumber;
+    }
+    return buildHeaderName;
 });
 
 var analyzerTemplate = Handlebars.compile(tableBody);

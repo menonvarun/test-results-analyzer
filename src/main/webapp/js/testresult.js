@@ -1,6 +1,7 @@
 var colTemplate = "{'cellClass':'col1','value':'build20','header':'20','title':'20'}";
 var treeMarkup = "";
 var reevaluateChartData = true;
+var showBuildDate = false;
 function reset(){
     reevaluateChartData = true;
     $j(".table").html("")
@@ -10,6 +11,7 @@ function reset(){
 
 function populateTemplate(){
     reset();
+    _init();
     var noOfBuilds = $j('#noofbuilds').val();
     remoteAction.getTreeResult(noOfBuilds,$j.proxy(function(t) {
         var itemsResponse = t.responseObject();
@@ -17,6 +19,10 @@ function populateTemplate(){
         $j(".table").html(treeMarkup);
         addEvents();
     },this));
+}
+
+function _init(){
+    showBuildDate = $j("#show-build-date").is(":checked");
 }
 
 function collapseAll(){
@@ -120,4 +126,9 @@ function checkParent(node) {
     if ((parentCheckBox.size() > 0) && ($j(parentCheckBox).attr("parentclass") != 'base')) {
         checkParent(parentCheckBox);
     }
+}
+
+function resetOptions(){
+    $j("#show-build-date").prop('checked', false);
+    $j("#show-build-duration").prop('checked', false);
 }

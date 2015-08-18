@@ -46,6 +46,17 @@ function resetCharts(){
     $j("#piechart").html("");
 }
 
+function _getCategory(buildNumber, buildInfo){
+    var category = "";
+    if(showBuildDate) {
+        var d = new Date(buildInfo.startTime);
+            category = d.toLocaleDateString() + " \n " + d.toLocaleTimeString();
+        } else {
+            category = buildNumber;
+        }
+    return category;
+}
+
 function generateLineChart(){
     var chartCategories = [];
     var chartData ={
@@ -58,7 +69,7 @@ function generateLineChart(){
     for(var key in chartResult) {
         if(chartResult.hasOwnProperty(key)){
             var buildResult = chartResult[key];
-            chartCategories.push(key);
+            chartCategories.push(_getCategory(key, buildResult["buildInfo"]));
             chartData["Failed"].push(buildResult["Failed"]);
             chartData["Passed"].push(buildResult["Passed"]);
             chartData["Skipped"].push(buildResult["Skipped"]);
@@ -146,7 +157,8 @@ function getChartData(selectedRows) {
                 "Failed" :   jsonResult["totalFailed"]?jsonResult["totalFailed"]:0,
                 "Skipped" :   jsonResult["totalSkipped"]?jsonResult["totalSkipped"]:0,
                 "Passed" :   jsonResult["totalPassed"]?jsonResult["totalPassed"]:0,
-                "Total" :   jsonResult["totalTests"]?jsonResult["totalTests"]:0
+                "Total" :   jsonResult["totalTests"]?jsonResult["totalTests"]:0,
+                "buildInfo": jsonResult["buildInfo"]
             };
             if(chartResult[buildNumber]){
                 var tempChartBuildResult = chartResult[buildNumber];
@@ -154,7 +166,8 @@ function getChartData(selectedRows) {
                     "Failed": tempChartBuildResult["Failed"] + tempBuildResult["Failed"],
                     "Skipped": tempChartBuildResult["Skipped"] + tempBuildResult["Skipped"],
                     "Passed": tempChartBuildResult["Passed"] + tempBuildResult["Passed"],
-                    "Total": tempChartBuildResult["Total"] + tempBuildResult["Total"]
+                    "Total": tempChartBuildResult["Total"] + tempBuildResult["Total"],
+                    "buildInfo": tempChartBuildResult["buildInfo"]
                 }
                 chartResult[buildNumber] = result;
             } else {
@@ -252,7 +265,10 @@ function getLineChartConfig(chartCategories, chartData){
         }, {
             name: 'Total',
             data:  chartData["Total"]
-        }]
+        }],
+        scrollbar : {
+            enabled: true
+        }
     }
 
     return linechart;
