@@ -63,20 +63,23 @@ function generateLineChart(){
         "Failed" : [],
         "Passed" : [],
         "Skipped" : [],
-        "Total" : []
+        "Total" : [],
+        "Build Id" : []
     };
 
     for(var key in chartResult) {
         if(chartResult.hasOwnProperty(key)){
             var buildResult = chartResult[key];
-            chartCategories.push(_getCategory(key, buildResult["buildInfo"]));
-            chartData["Failed"].push(buildResult["Failed"]);
-            chartData["Passed"].push(buildResult["Passed"]);
-            chartData["Skipped"].push(buildResult["Skipped"]);
-            chartData["Total"].push(buildResult["Total"]);
+            //chartCategories.push(_getCategory(key, buildResult["buildInfo"]));
+            var buildInfo = buildResult["buildInfo"];
+            chartData["Failed"].push({x: buildInfo["startTime"], y: buildResult["Failed"], buildId: buildInfo["buildNumber"]});
+            chartData["Passed"].push({x: buildInfo["startTime"], y: buildResult["Passed"], buildId: buildInfo["buildNumber"]});
+            chartData["Skipped"].push({x: buildInfo["startTime"], y:buildResult["Skipped"], buildId: buildInfo["buildNumber"]});
+            chartData["Total"].push({x: buildInfo["startTime"], y:buildResult["Total"], buildId: buildInfo["buildNumber"]});
+            /*chartData["Build Id"].push([buildResult["buildInfo"]["startTime"],buildResult["buildInfo"]["buildNumber"]]);*/
         }
     }
-    $j(function () {$j("#linechart").highcharts(getLineChartConfig(chartCategories, chartData))});
+    $j(function () {$j("#linechart").highcharts('StockChart', getLineChartConfig(chartCategories, chartData))});
 
 }
 
@@ -194,15 +197,13 @@ function getSelectedRows(){
 
 function getLineChartConfig(chartCategories, chartData){
     var linechart = {
+
         title: {
             text: 'Build Status',
             x: -20 //center
         },
-        xAxis: {
-            title: {
-                text: 'Build number'
-            },
-            categories: chartCategories
+        rangeSelector: {
+             selected: 4
         },
         yAxis: {
             title: {
@@ -210,17 +211,12 @@ function getLineChartConfig(chartCategories, chartData){
             },
             plotLines: [{
                 value: 0,
-                width: 1,
+                width: 2,
                 color: '#808080'
             }]
         },
         credits: {
             enabled: false
-        },
-        tooltip: {
-            headerFormat: '<b>Build no: {point.x}</b><br>',
-            shared: true,
-            crosshairs: true
         },
         legend: {
             layout: 'vertical',
@@ -236,13 +232,12 @@ function getLineChartConfig(chartCategories, chartData){
                 point: {
                     events: {
                         click: function (e) {
-                            var x1 = this.x;
-                            var category = this.category;
+                            var x1 = this.index;
                             var passed = this.series.chart.series[0].data[x1].y;
                             var failed = this.series.chart.series[1].data[x1].y;
                             var skipped = this.series.chart.series[2].data[x1].y;
                             var total = this.series.chart.series[3].data[x1].y;
-                            var resultTitle = 'Build details for build: '+category;
+                            var resultTitle = 'Build details for build: '+this.buildId;
                             generatePieChart(calculatePercentage(passed,failed,skipped,total),resultTitle);
 
                         }
@@ -250,18 +245,28 @@ function getLineChartConfig(chartCategories, chartData){
                 }
             }
         },
-        series: [{
+        tooltip : {
+            formatter: function () {
+                var s = '<span style="font-size: 10px;">' + Highcharts.dateFormat('%a %e-%b-%Y %I:%M:%S %p', this.x) + '</span>';
+                    s += '<br/><b>Build Id: </b>' + this.points[0].point.buildId;
+                    $j.each(this.points, function () {
+                        s += '<br/><b><span style="font-size: 12px;color:'+this.color+';font-weight:bold">'
+                        + this.series.name + '</span></b>: '+this.y;
+                    });
+                    return s;
+                                  },
+                                  shared: true
+                  },
+        series: [
+        {
             name: 'Passed',
             data: chartData["Passed"]
-            //color: '#24A516'
         }, {
             name: 'Failed',
             data: chartData["Failed"]
-            //color: '#FD0505'
         }, {
             name: 'Skipped',
             data: chartData["Skipped"]
-            //color: '#AEAEAE'
         }, {
             name: 'Total',
             data:  chartData["Total"]
