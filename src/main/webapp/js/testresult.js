@@ -2,6 +2,8 @@ var colTemplate = "{'cellClass':'col1','value':'build20','header':'20','title':'
 var treeMarkup = "";
 var reevaluateChartData = true;
 var showBuildDate = false;
+var displayValues = false;
+
 function reset(){
     reevaluateChartData = true;
     $j(".table").html("")
@@ -13,6 +15,8 @@ function populateTemplate(){
     reset();
     _init();
     var noOfBuilds = $j('#noofbuilds').val();
+    displayValues  = $j("#show-durations").is(":checked");
+
     remoteAction.getTreeResult(noOfBuilds,$j.proxy(function(t) {
         var itemsResponse = t.responseObject();
         treeMarkup = analyzerTemplate(itemsResponse);

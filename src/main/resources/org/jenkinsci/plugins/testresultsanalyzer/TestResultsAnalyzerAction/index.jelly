@@ -31,12 +31,13 @@ Last builds and show
 
 <select id="teststatus">
   <option value="all">All</option>
-  <option value="FAILED">FAILED</option>  
-  <option value="PASSED">PASSED</option>  
-  <option value="SKIPPED">SKIPPED</option>  
+  <option value="FAILED">FAILED</option>
+  <option value="PASSED">PASSED</option>
+  <option value="SKIPPED">SKIPPED</option>
 </select>
  tests.
 Advanced options: <input type="checkbox" id="show-advanced-options" name="show-advanced-options"/>
+
 <button id="getbuildreport">Get Build Report</button>
 <div class="extrabuttons">
 	<button id="expandall">Expand All</button>
@@ -45,6 +46,7 @@ Advanced options: <input type="checkbox" id="show-advanced-options" name="show-a
 </div>
 <div id="advancedOptions" style="display:none">
      Show build date instead of build number:<input type="checkbox" id="show-build-date" name="show-build-date"/><br/>
+     Display duration: <input type="checkbox" id="show-durations" name="show-durations" value="durations"/>
 </div>
 
 <div class="chartbuttons">
@@ -56,6 +58,7 @@ Select chart type:
    <option value="bar">Bar</option>
    <option value="pie">Pie</option>
  </select>
+
 <button class = "charts" id="generatechart">Generate Charts</button>
 <button class = "charts" id="hidecharts">Hide Charts</button>
 </div>
@@ -92,7 +95,7 @@ Select chart type:
 <script>
     /*$j("#advancedOptions").hide();*/
 	$j("#getbuildreport").click(function () {
-		populateTemplate();
+		populateTemplate(displayValues);
 	});
 	
 	$j("#expandall").click(function () {
