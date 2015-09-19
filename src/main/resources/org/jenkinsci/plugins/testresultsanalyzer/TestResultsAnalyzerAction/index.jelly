@@ -36,17 +36,16 @@ Last builds and show
   <option value="SKIPPED">SKIPPED</option>
 </select>
  tests.
-Advanced options: <input type="checkbox" id="show-advanced-options" name="show-advanced-options"/>
-
-<button id="getbuildreport">Get Build Report</button>
+<br/>Advanced options: <input type="checkbox" id="show-advanced-options" name="show-advanced-options"/><br/>
+<div id="advancedOptions" style="display:none">
+     Show build date instead of build number:<input type="checkbox" id="show-build-date" name="show-build-date"/><br/>
+     Display duration (in secs): <input type="checkbox" id="show-durations" name="show-durations" value="durations"/>
+</div>
+<button id="getbuildreport">Get Build Report</button><br/>
 <div class="extrabuttons">
 	<button id="expandall">Expand All</button>
 	<button id="collapseall">Collapse All</button>
 </div>
-</div>
-<div id="advancedOptions" style="display:none">
-     Show build date instead of build number:<input type="checkbox" id="show-build-date" name="show-build-date"/><br/>
-     Display duration: <input type="checkbox" id="show-durations" name="show-durations" value="durations"/>
 </div>
 
 <div class="chartbuttons">
@@ -58,6 +57,10 @@ Select chart type:
    <option value="bar">Bar</option>
    <option value="pie">Pie</option>
  </select>
+ <br/>Advanced options: <input type="checkbox" id="show-chart-advanced-options" name="show-chart-advanced-options"/><br/>
+ <div id="chartAdvancedOptions" style="display:none">
+      Use build name for x axis <input type="checkbox" id="show-build-name-line-chart" name="show-build-name-line-chart"/><br/>
+ </div>
 
 <button class = "charts" id="generatechart">Generate Charts</button>
 <button class = "charts" id="hidecharts">Hide Charts</button>
@@ -123,6 +126,16 @@ Select chart type:
             $j("#advancedOptions").hide();
         }
     });
+    $j("#show-chart-advanced-options").click(function() {
+            var $this = $j(this);
+
+            if ($this.is(':checked')) {
+                $j("#chartAdvancedOptions").show();
+            } else {
+                resetOptions();
+                $j("#chartAdvancedOptions").hide();
+            }
+        });
 </script>
   </l:main-panel>
   </l:layout>

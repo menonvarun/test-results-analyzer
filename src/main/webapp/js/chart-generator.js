@@ -202,8 +202,20 @@ function getLineChartConfig(chartCategories, chartData){
             text: 'Build Status',
             x: -20 //center
         },
-        rangeSelector: {
-             selected: 4
+        /*rangeSelector: {
+             selected: 1
+        },*/
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                second: '%Y-%m-%d<br/>%H:%M:%S',
+                minute: '%Y-%m-%d<br/>%H:%M',
+                hour: '%Y-%m-%d<br/>%H:%M',
+                day: '%Y<br/>%m-%d',
+                week: '%Y<br/>%m-%d',
+                month: '%Y-%m',
+                year: '%Y'
+            }
         },
         yAxis: {
             title: {
@@ -247,16 +259,18 @@ function getLineChartConfig(chartCategories, chartData){
         },
         tooltip : {
             formatter: function () {
-                var s = '<span style="font-size: 10px;">' + Highcharts.dateFormat('%a %e-%b-%Y %I:%M:%S %p', this.x) + '</span>';
-                    s += '<br/><b>Build Id: </b>' + this.points[0].point.buildId;
+                    var s = '<span style="font-size: 10px;">' + Highcharts.dateFormat('%a %e-%b-%Y %I:%M:%S %p', this.x) + '</span>';
+                    s += '<br/><div> <b>Build Id: ' + this.points[0].point.buildId + '</b></div>';
                     $j.each(this.points, function () {
-                        s += '<br/><b><span style="font-size: 12px;color:'+this.color+';font-weight:bold">'
-                        + this.series.name + '</span></b>: '+this.y;
+                        s += '<br/><div style="font-size: 12px;color:'+this.color+';font-weight:bold">'
+                            + this.series.name + ': '+this.y + '</div>';
                     });
+                    s+=''
                     return s;
-                                  },
-                                  shared: true
-                  },
+            },
+            shared: true,
+            useHtml: true
+        },
         series: [
         {
             name: 'Passed',
