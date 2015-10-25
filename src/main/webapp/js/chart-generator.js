@@ -46,13 +46,12 @@ function resetCharts(){
     $j("#piechart").html("");
 }
 
-function _getCategory(buildNumber, buildInfo){
+function _getCategory(buildInfo){
     var category = "";
     if(showBuildDate) {
-        var d = new Date(buildInfo.startTime);
-            category = d.toLocaleDateString() + " \n " + d.toLocaleTimeString();
+            category = new Date(buildInfo["startTime"]);
         } else {
-            category = buildNumber;
+            category = buildInfo["buildNumber"];
         }
     return category;
 }
@@ -70,16 +69,16 @@ function generateLineChart(){
     for(var key in chartResult) {
         if(chartResult.hasOwnProperty(key)){
             var buildResult = chartResult[key];
-            //chartCategories.push(_getCategory(key, buildResult["buildInfo"]));
             var buildInfo = buildResult["buildInfo"];
-            chartData["Failed"].push({x: buildInfo["startTime"], y: buildResult["Failed"], buildId: buildInfo["buildNumber"]});
-            chartData["Passed"].push({x: buildInfo["startTime"], y: buildResult["Passed"], buildId: buildInfo["buildNumber"]});
-            chartData["Skipped"].push({x: buildInfo["startTime"], y:buildResult["Skipped"], buildId: buildInfo["buildNumber"]});
-            chartData["Total"].push({x: buildInfo["startTime"], y:buildResult["Total"], buildId: buildInfo["buildNumber"]});
+            chartCategories.push(_getCategory(buildInfo));
+            chartData["Failed"].push({ y: buildResult["Failed"], buildId: buildInfo["buildNumber"]});
+            chartData["Passed"].push({ y: buildResult["Passed"], buildId: buildInfo["buildNumber"]});
+            chartData["Skipped"].push({y:buildResult["Skipped"], buildId: buildInfo["buildNumber"]});
+            chartData["Total"].push({ y:buildResult["Total"], buildId: buildInfo["buildNumber"]});
             /*chartData["Build Id"].push([buildResult["buildInfo"]["startTime"],buildResult["buildInfo"]["buildNumber"]]);*/
         }
     }
-    $j(function () {$j("#linechart").highcharts('StockChart', getLineChartConfig(chartCategories, chartData))});
+    $j(function () {$j("#linechart").highcharts( getLineChartConfig(chartCategories, chartData))});
 
 }
 
@@ -196,16 +195,10 @@ function getSelectedRows(){
 }
 
 function getLineChartConfig(chartCategories, chartData){
-    var linechart = {
-
-        title: {
-            text: 'Build Status',
-            x: -20 //center
-        },
-        /*rangeSelector: {
-             selected: 1
-        },*/
-        xAxis: {
+    var xAxisConfig = {};
+    if(showBuildDate) {
+        xAxisConfig = [
+            {
             type: 'datetime',
             dateTimeLabelFormats: {
                 second: '%Y-%m-%d<br/>%H:%M:%S',
@@ -215,8 +208,27 @@ function getLineChartConfig(chartCategories, chartData){
                 week: '%Y<br/>%m-%d',
                 month: '%Y-%m',
                 year: '%Y'
+            },
+            categories: chartCategories
             }
+        ];
+    } else {
+        xAxisConfig = [{
+            categories: chartCategories
+        }
+        ]
+
+    }
+    var linechart = {
+
+        title: {
+            text: 'Build Status',
+            x: -20 //center
         },
+        /*rangeSelector: {
+             selected: 1
+        },*/
+        xAxis: xAxisConfig,
         yAxis: {
             title: {
                 text: 'No of tests'
