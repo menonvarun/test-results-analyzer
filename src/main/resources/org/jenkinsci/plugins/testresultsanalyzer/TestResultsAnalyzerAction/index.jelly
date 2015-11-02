@@ -31,18 +31,24 @@ Last builds and show
 
 <select id="teststatus">
   <option value="all">All</option>
-  <option value="FAILED">FAILED</option>  
-  <option value="PASSED">PASSED</option>  
-  <option value="SKIPPED">SKIPPED</option>  
+  <option value="FAILED">FAILED</option>
+  <option value="PASSED">PASSED</option>
+  <option value="SKIPPED">SKIPPED</option>
 </select>
  tests.
+ <br/>Advanced options: <input type="checkbox" id="show-advanced-options" name="show-advanced-options"/>
+ <button id="getbuildreport">Get Build Report</button>
+ <div id="advancedOptions" style="display:none">
+    Display duration (in secs): <input type="checkbox" id="show-build-durations" name="show-build-durations" value="durations"/>
+ </div>
 
-<button id="getbuildreport">Get Build Report</button>
+</div>
+
 <div class="extrabuttons">
 	<button id="expandall">Expand All</button>
 	<button id="collapseall">Collapse All</button>
 </div>
-</div>
+
 <div class="chartbuttons">
 Select chart type:
 
@@ -52,6 +58,7 @@ Select chart type:
    <option value="bar">Bar</option>
    <option value="pie">Pie</option>
  </select>
+
 <button class = "charts" id="generatechart">Generate Charts</button>
 <button class = "charts" id="hidecharts">Hide Charts</button>
 </div>
@@ -103,6 +110,17 @@ Select chart type:
     });
     $j("#hidecharts").click(function () {
     		resetCharts();
+    });
+
+    $j("#show-advanced-options").click(function() {
+        var $this = $j(this);
+
+        if ($this.is(':checked')) {
+            $j("#advancedOptions").show();
+        } else {
+            resetAdvancedOptions();
+            $j("#advancedOptions").hide();
+        }
     });
 </script>
   </l:main-panel>
