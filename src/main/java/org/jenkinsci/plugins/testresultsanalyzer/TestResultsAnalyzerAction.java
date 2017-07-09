@@ -104,33 +104,43 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   public void getJsonLoadData() {
-    if (isUpdated()) {
-      resultInfo = new ResultInfo();
-      builds = new ArrayList<>();
-      RunList<Run> runs = project.getBuilds();
-      for (Run run : runs) {
-        if (run.isBuilding()) {
-          continue;
+    if (!isUpdated()) {
+      return;
+    }
+
+    resultInfo = new ResultInfo();
+    builds = new ArrayList<>();
+
+    RunList<Run> runs = project.getBuilds();
+    for (Run run : runs) {
+      if (!run.isBuilding()) {
+        updateBuildsAndResultInfo(run, builds, resultInfo);
+      }
+    }
+  }
+
+  private void updateBuildsAndResultInfo(Run run, List<Integer> builds, ResultInfo resultInfo) {
+
+    int buildNumber = run.getNumber();
+    String buildUrl = project.getBuildByNumber(buildNumber).getUrl();
+    builds.add(run.getNumber());
+
+    List<AbstractTestResultAction> testActions = run.getActions(AbstractTestResultAction.class);
+    for (AbstractTestResultAction testAction : testActions) {
+
+      try {
+
+        TabulatedResult testResult = (TabulatedResult) testAction.getResult();
+        Collection<? extends TestResult> packageResults = testResult.getChildren();
+        for (TestResult packageResult : packageResults) { // packageresult
+          resultInfo.addPackage(buildNumber, (TabulatedResult) packageResult,
+              Jenkins.getInstance().getRootUrl() + buildUrl);
         }
-        int buildNumber = run.getNumber();
-        String buildUrl = project.getBuildByNumber(buildNumber).getUrl();
-        builds.add(run.getNumber());
-        List<AbstractTestResultAction> testActions = run.getActions(AbstractTestResultAction.class);
-        for (AbstractTestResultAction testAction : testActions) {
-          try {
-            TabulatedResult testResult = (TabulatedResult) testAction.getResult();
-            Collection<? extends TestResult> packageResults = testResult.getChildren();
-            for (TestResult packageResult : packageResults) { // packageresult
-              resultInfo.addPackage(buildNumber, (TabulatedResult) packageResult,
-                  Jenkins.getInstance().getRootUrl() + buildUrl);
-            }
-          } catch (ClassCastException e) {
-            log.info(
-                "Got ClassCast exception while converting results to Tabulated Result from action: "
-                    + testAction.getClass().getName()
-                    + ". Ignoring as we only want test results for processing.");
-          }
-        }
+
+      } catch (ClassCastException ignore) {
+        log.info("Got ClassCastException while converting results to TabulatedResult from action: "
+                + "{}. Ignoring as we only want test results for processing.",
+            testAction.getClass().getName());
       }
     }
   }
