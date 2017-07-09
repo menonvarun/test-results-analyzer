@@ -1,6 +1,6 @@
-package org.jenkinsci.plugins.testresultanalyzer;
+package org.jenkinsci.plugins.testresultsanalyzer.result;
 
-import java.util.Arrays;
+
 
 import hudson.model.*;
 import org.junit.Ignore;
@@ -8,7 +8,6 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.*;
-import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import static org.junit.Assert.*;
 import com.gargoylesoftware.htmlunit.html.*; 

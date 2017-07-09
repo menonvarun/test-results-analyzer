@@ -18,20 +18,21 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import org.apache.log4j.Logger;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ResultInfo;
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ResultData;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ClassInfo;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.PackageInfo;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.TestCaseInfo;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestResultsAnalyzerAction extends Actionable implements Action {
 
 	@SuppressWarnings("rawtypes")
 	Job project;
 	private List<Integer> builds = new ArrayList<Integer>();
-	private final static Logger LOG = Logger.getLogger(TestResultsAnalyzerAction.class.getName());
+	private final static Logger LOG = LoggerFactory.getLogger(TestResultsAnalyzerAction.class.getName());
 
 	ResultInfo resultInfo;
 
