@@ -20,6 +20,10 @@
         </developer>
     </developers>
 
+    <properties>
+        <java.level>8</java.level>
+    </properties>
+
     <licenses>
         <license>
             <name>Apache 2.0</name>
