@@ -47,7 +47,7 @@ public class PackageInfo extends Info {
   @Override
   protected JSONObject getChildrenJson() {
     JSONObject json = new JSONObject();
-    classesByName.forEach((name, clazz) -> json.put(name, clazz));
+    classesByName.forEach((name, clazz) -> json.put(name, clazz.getJsonObject()));
     return json;
   }
 

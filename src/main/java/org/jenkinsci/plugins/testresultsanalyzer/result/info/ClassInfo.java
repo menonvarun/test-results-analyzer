@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.testresultsanalyzer.result.info;
 import hudson.tasks.test.TabulatedResult;
 import hudson.tasks.test.TestResult;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ClassResultData;
