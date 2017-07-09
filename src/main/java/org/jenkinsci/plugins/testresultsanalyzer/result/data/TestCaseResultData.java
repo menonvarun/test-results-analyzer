@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 public class TestCaseResultData extends ResultData {
 
   public TestCaseResultData(TestResult testResult, String url) {
-    setName(testResult.getName());
+    this.name = testResult.getName();
     boolean doTestNg = testResult.getClass().getName()
         .equals("hudson.plugins.testng.results.MethodResult");
     if (doTestNg) {
@@ -15,13 +15,12 @@ public class TestCaseResultData extends ResultData {
         Object returnValue = method.invoke(testResult);
         if (returnValue instanceof String) {
           String status = ((String) returnValue).toLowerCase();
-
-          setPassed(status.startsWith("pass"));
-          setSkipped(status.startsWith("skip"));
-          setTotalTests(1);
-          setTotalFailed(status.startsWith("fail") ? 1 : 0);
-          setTotalPassed(status.startsWith("pass") ? 1 : 0);
-          setTotalSkipped(status.startsWith("skip") ? 1 : 0);
+          this.isPassed = status.startsWith("pass");
+          this.isSkipped = status.startsWith("skip");
+          this.totalTests = 1;
+          this.totalFailed = status.startsWith("fail") ? 1 : 0;
+          this.totalPassed = status.startsWith("pass") ? 1 : 0;
+          this.totalSkipped = status.startsWith("skip") ? 1 : 0;
         }
       } catch (Exception e) {
         // fallback to non testng code
@@ -29,18 +28,18 @@ public class TestCaseResultData extends ResultData {
       }
     }
     if (!doTestNg) {
-      setPassed(testResult.isPassed());
-      setSkipped(testResult.getSkipCount() == testResult.getTotalCount());
-      setTotalTests(testResult.getTotalCount());
-      setTotalFailed(testResult.getFailCount());
-      setTotalPassed(testResult.getPassCount());
-      setTotalSkipped(testResult.getSkipCount());
+      this.isPassed = testResult.isPassed();
+      this.isSkipped = testResult.getSkipCount() == testResult.getTotalCount();
+      this.totalTests = testResult.getTotalCount();
+      this.totalFailed = testResult.getFailCount();
+      this.totalPassed = testResult.getPassCount();
+      this.totalSkipped = testResult.getSkipCount();
     }
-    setTotalTimeTaken(testResult.getDuration());
-    setUrl(url);
+    this.totalTimeTaken = testResult.getDuration();
+    this.url = url;
     evaluateStatus();
     if ("FAILED".equalsIgnoreCase(getStatus())) {
-      setFailureMessage(testResult.getErrorStackTrace());
+      this.failureMessage = testResult.getErrorStackTrace();
     }
   }
 

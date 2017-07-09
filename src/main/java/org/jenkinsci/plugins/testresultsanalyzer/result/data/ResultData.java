@@ -9,19 +9,19 @@ import net.sf.json.JSONObject;
 
 public abstract class ResultData {
 
-  private String name;
-  private boolean isPassed;
-  private boolean isSkipped;
-  private transient TabulatedResult packageResult;
-  private int totalTests;
-  private int totalFailed;
-  private int totalPassed;
-  private int totalSkipped;
-  private List<ResultData> children = new ArrayList<>();
-  private float totalTimeTaken;
-  private String status;
-  private String failureMessage = "";
-  private String url;
+  protected String name;
+  protected boolean isPassed;
+  protected boolean isSkipped;
+  protected transient TabulatedResult packageResult;
+  protected int totalTests;
+  protected int totalFailed;
+  protected int totalPassed;
+  protected int totalSkipped;
+  protected List<ResultData> children = new ArrayList<>();
+  protected float totalTimeTaken;
+  protected String status;
+  protected String failureMessage = "";
+  protected String url;
 
   //Used for constructing mock object
   public ResultData() {
@@ -29,15 +29,15 @@ public abstract class ResultData {
   }
 
   public ResultData(TestObject result, String url) {
-    setName(result.getName());
-    setPassed(result.getFailCount() == 0);
-    setSkipped(result.getSkipCount() == result.getTotalCount());
-    setTotalTests(result.getTotalCount());
-    setTotalFailed(result.getFailCount());
-    setTotalPassed(result.getPassCount());
-    setTotalSkipped(result.getSkipCount());
-    setTotalTimeTaken(result.getDuration());
-    setUrl(url);
+    this.name = result.getName();
+    this.isPassed = result.getFailCount() == 0;
+    this.isSkipped = result.getSkipCount() == result.getTotalCount();
+    this.totalTests = result.getTotalCount();
+    this.totalFailed = result.getFailCount();
+    this.totalPassed = result.getPassCount();
+    this.totalSkipped = result.getSkipCount();
+    this.totalTimeTaken = result.getDuration();
+    this.url = url;
     evaluateStatus();
   }
 
@@ -45,103 +45,55 @@ public abstract class ResultData {
     return failureMessage;
   }
 
-  public void setFailureMessage(String failureMessage) {
-    this.failureMessage = failureMessage;
-  }
-
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public boolean isPassed() {
     return isPassed;
   }
 
-  public void setPassed(boolean isPassed) {
-    this.isPassed = isPassed;
-  }
-
   public boolean isSkipped() {
     return isSkipped;
-  }
-
-  public void setSkipped(boolean isSkipped) {
-    this.isSkipped = isSkipped;
   }
 
   public TabulatedResult getPackageResult() {
     return packageResult;
   }
 
-  public void setPackageResult(TabulatedResult packageResult) {
-    this.packageResult = packageResult;
-  }
-
   public int getTotalTests() {
     return totalTests;
-  }
-
-  public void setTotalTests(int totalTests) {
-    this.totalTests = totalTests;
   }
 
   public int getTotalFailed() {
     return totalFailed;
   }
 
-  public void setTotalFailed(int totalFailed) {
-    this.totalFailed = totalFailed;
-  }
-
   public int getTotalPassed() {
     return totalPassed;
-  }
-
-  public void setTotalPassed(int totalPassed) {
-    this.totalPassed = totalPassed;
   }
 
   public int getTotalSkipped() {
     return totalSkipped;
   }
 
-  public void setTotalSkipped(int totalSkipped) {
-    this.totalSkipped = totalSkipped;
-  }
-
   public List<ResultData> getChildren() {
     return children;
-  }
-
-  public void addChildResult(ResultData childResultData) {
-    children.add(childResultData);
-  }
-
-  public void addChildResult(List<ResultData> childResults) {
-    children.addAll(childResults);
   }
 
   public float getTotalTimeTaken() {
     return totalTimeTaken;
   }
 
-  public void setTotalTimeTaken(float totalTimeTaken) {
-    this.totalTimeTaken = totalTimeTaken;
-  }
-
   public String getUrl() {
     return url;
   }
 
-  public void setUrl(String url) {
-    this.url = url;
+  public String getStatus() {
+    return status;
   }
 
-  protected void evaluateStatus() {
+  protected final void evaluateStatus() {
     if (isPassed) {
       status = "PASSED";
     } else if (isSkipped) {
@@ -151,9 +103,7 @@ public abstract class ResultData {
     }
   }
 
-  public String getStatus() {
-    return status;
-  }
+
 
   public JSONObject getJsonObject() {
     JSONObject json = new JSONObject();
