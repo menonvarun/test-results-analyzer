@@ -33,30 +33,23 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
     this.project = project;
   }
 
-  public static String getNoOfBuilds() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getNoOfBuilds();
-  }
-
   public final String getDisplayName() {
-    return hasPermission() ? Constants.NAME : null;
+    return canRead() ? Constants.NAME : null;
   }
 
   public final String getIconFileName() {
-    return hasPermission() ? Constants.ICONFILENAME : null;
+    return canRead() ? Constants.ICONFILENAME : null;
   }
 
   public String getUrlName() {
-    return hasPermission() ? Constants.URL : null;
+    return canRead() ? Constants.URL : null;
   }
 
   public String getSearchUrl() {
-    return hasPermission() ? Constants.URL : null;
+    return canRead() ? Constants.URL : null;
   }
 
-  /**
-   * Return {@code true} if the user has CONFIGURE permission;  {@code false} otherwise.
-   */
-  private boolean hasPermission() {
+  private boolean canRead() {
     return project.hasPermission(Item.READ);
   }
 
@@ -69,6 +62,44 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
   public JSONArray getNoOfBuilds(String noOfbuildsNeeded) {
     int noOfBuilds = parseNumberOfBuilds(noOfbuildsNeeded);
     return getBuildsArray(getBuilds(noOfBuilds));
+  }
+
+  @JavaScriptMethod
+  public JSONObject getTreeResult(String noOfBuildsNeeded) {
+    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
+    List<Integer> buildList = getBuilds(noOfBuilds);
+
+    JsTreeUtil jsTreeUtils = new JsTreeUtil();
+    return jsTreeUtils.getJsTree(buildList, resultInfo);
+  }
+
+  @JavaScriptMethod
+  public String getExportCsv(String isTimeBased, String noOfBuildsNeeded) {
+    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
+    List<Integer> buildList = getBuilds(noOfBuilds);
+
+    return TestResultsAnalyzerExporter.exportToCsv(
+        resultInfo,
+        buildList,
+        Boolean.parseBoolean(isTimeBased)
+    );
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public void getJsonLoadData() {
+    if (!isUpdated()) {
+      return;
+    }
+
+    resultInfo = new ResultInfo();
+    builds = new ArrayList<>();
+
+    RunList<Run> runs = project.getBuilds();
+    for (Run run : runs) {
+      if (!run.isBuilding()) {
+        updateBuildsAndResultInfo(run, builds, resultInfo);
+      }
+    }
   }
 
   private JSONArray getBuildsArray(List<Integer> buildList) {
@@ -94,26 +125,9 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
     }
   }
 
-  public boolean isUpdated() {
+  private boolean isUpdated() {
     int latestBuildNumber = project.getLastBuild().getNumber();
     return !(builds.contains(latestBuildNumber));
-  }
-
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  public void getJsonLoadData() {
-    if (!isUpdated()) {
-      return;
-    }
-
-    resultInfo = new ResultInfo();
-    builds = new ArrayList<>();
-
-    RunList<Run> runs = project.getBuilds();
-    for (Run run : runs) {
-      if (!run.isBuilding()) {
-        updateBuildsAndResultInfo(run, builds, resultInfo);
-      }
-    }
   }
 
   private void updateBuildsAndResultInfo(Run run, List<Integer> builds, ResultInfo resultInfo) {
@@ -142,25 +156,8 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
     }
   }
 
-  @JavaScriptMethod
-  public JSONObject getTreeResult(String noOfBuildsNeeded) {
-    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
-    List<Integer> buildList = getBuilds(noOfBuilds);
-
-    JsTreeUtil jsTreeUtils = new JsTreeUtil();
-    return jsTreeUtils.getJsTree(buildList, resultInfo);
-  }
-
-  @JavaScriptMethod
-  public String getExportCsv(String isTimeBased, String noOfBuildsNeeded) {
-    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
-    List<Integer> buildList = getBuilds(noOfBuilds);
-
-    return TestResultsAnalyzerExporter.exportToCsv(
-        resultInfo,
-        buildList,
-        Boolean.parseBoolean(isTimeBased)
-    );
+  public static String getNoOfBuilds() {
+    return TestResultsAnalyzerExtension.DESCRIPTOR.getNoOfBuilds();
   }
 
   public boolean getShowAllBuilds() {
