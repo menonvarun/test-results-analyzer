@@ -1,48 +1,42 @@
 package org.jenkinsci.plugins.testresultsanalyzer.result.info;
 
 import hudson.tasks.test.TabulatedResult;
-
 import java.util.Map;
 import java.util.TreeMap;
-
 import net.sf.json.JSONObject;
 
 public class ResultInfo {
 
-	private Map<String, PackageInfo> packageResults = new TreeMap<String, PackageInfo>();
+  private Map<String, PackageInfo> packageResults = new TreeMap<>();
 
-	public void addPackage(Integer buildNumber, TabulatedResult packageResult, String url) {
-		String packageName = packageResult.getName();
-		PackageInfo packageInfo;
-		if (packageResults.containsKey(packageName)) {
-			packageInfo = packageResults.get(packageName);
-		}
-		else {
-			packageInfo = new PackageInfo();
-			packageInfo.setName(packageName);
-		}
-		packageInfo.putPackageResult(buildNumber, packageResult, url + getResultUrl(packageResult) +"/" + packageResult.getSafeName());
-		packageResults.put(packageName, packageInfo);
-	}
+  public void addPackage(Integer buildNumber, TabulatedResult packageResult, String url) {
+    String packageName = packageResult.getName();
+    PackageInfo packageInfo;
+    if (packageResults.containsKey(packageName)) {
+      packageInfo = packageResults.get(packageName);
+    } else {
+      packageInfo = new PackageInfo();
+      packageInfo.setName(packageName);
+    }
+    packageInfo.putPackageResult(buildNumber, packageResult,
+        url + getResultUrl(packageResult) + "/" + packageResult.getSafeName());
+    packageResults.put(packageName, packageInfo);
+  }
 
-	public JSONObject getJsonObject() {
-		JSONObject json = new JSONObject();
-		for (String packageName : packageResults.keySet()) {
-			json.put(packageName, packageResults.get(packageName).getJsonObject());
-		}
-		return json;
-	}
+  public JSONObject getJsonObject() {
+    JSONObject json = new JSONObject();
+    for (String packageName : packageResults.keySet()) {
+      json.put(packageName, packageResults.get(packageName).getJsonObject());
+    }
+    return json;
+  }
 
-	public Map<String, PackageInfo> getPackageResults() {
-		return this.packageResults;
-	}
+  public Map<String, PackageInfo> getPackageResults() {
+    return packageResults;
+  }
 
-	protected String getResultUrl(TabulatedResult result){
-		boolean isTestng = result.getClass().getName().startsWith("hudson.plugins.testng.results");
-		if(isTestng){
-			return "testngreports";
-		} else {
-			return "testReport";
-		}
-	}
+  protected String getResultUrl(TabulatedResult result) {
+    boolean isTestng = result.getClass().getName().startsWith("hudson.plugins.testng.results");
+    return isTestng ? "testngreports" : "testReport";
+  }
 }
