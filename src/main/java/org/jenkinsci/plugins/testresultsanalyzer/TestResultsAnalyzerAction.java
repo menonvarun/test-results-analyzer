@@ -9,20 +9,13 @@ import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.TabulatedResult;
 import hudson.tasks.test.TestResult;
 import hudson.util.RunList;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.jenkinsci.plugins.testresultsanalyzer.result.data.ResultData;
-import org.jenkinsci.plugins.testresultsanalyzer.result.info.ClassInfo;
-import org.jenkinsci.plugins.testresultsanalyzer.result.info.PackageInfo;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ResultInfo;
-import org.jenkinsci.plugins.testresultsanalyzer.result.info.TestCaseInfo;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +31,10 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 
   public TestResultsAnalyzerAction(@SuppressWarnings("rawtypes") Job project) {
     this.project = project;
+  }
+
+  public static String getNoOfBuilds() {
+    return TestResultsAnalyzerExtension.DESCRIPTOR.getNoOfBuilds();
   }
 
   public final String getDisplayName() {
@@ -70,8 +67,8 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 
   @JavaScriptMethod
   public JSONArray getNoOfBuilds(String noOfbuildsNeeded) {
-    int noOfBuilds = getNoOfBuildRequired(noOfbuildsNeeded);
-    return getBuildsArray(getBuildList(noOfBuilds));
+    int noOfBuilds = parseNumberOfBuilds(noOfbuildsNeeded);
+    return getBuildsArray(getBuilds(noOfBuilds));
   }
 
   private JSONArray getBuildsArray(List<Integer> buildList) {
@@ -82,14 +79,14 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
     return jsonArray;
   }
 
-  private List<Integer> getBuildList(int noOfBuilds) {
+  private List<Integer> getBuilds(int noOfBuilds) {
     if ((noOfBuilds <= 0) || (noOfBuilds >= builds.size())) {
       return builds;
     }
     return builds.subList(0, noOfBuilds);
   }
 
-  private int getNoOfBuildRequired(String noOfBuildsNeeded) {
+  private int parseNumberOfBuilds(String noOfBuildsNeeded) {
     try {
       return Integer.parseInt(noOfBuildsNeeded);
     } catch (NumberFormatException e) {
@@ -147,96 +144,23 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 
   @JavaScriptMethod
   public JSONObject getTreeResult(String noOfBuildsNeeded) {
-    int noOfBuilds = getNoOfBuildRequired(noOfBuildsNeeded);
-    List<Integer> buildList = getBuildList(noOfBuilds);
+    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
+    List<Integer> buildList = getBuilds(noOfBuilds);
 
     JsTreeUtil jsTreeUtils = new JsTreeUtil();
     return jsTreeUtils.getJsTree(buildList, resultInfo);
   }
 
   @JavaScriptMethod
-  public String getExportCsv(String timeBased, String noOfBuildsNeeded) {
-    boolean isTimeBased = Boolean.parseBoolean(timeBased);
-    Map<String, PackageInfo> packageResults = resultInfo.getPackageResults();
-    int noOfBuilds = getNoOfBuildRequired(noOfBuildsNeeded);
-    List<Integer> buildList = getBuildList(noOfBuilds);
+  public String getExportCsv(String isTimeBased, String noOfBuildsNeeded) {
+    int noOfBuilds = parseNumberOfBuilds(noOfBuildsNeeded);
+    List<Integer> buildList = getBuilds(noOfBuilds);
 
-    String buildsString = "";
-    for (int i = 0; i < buildList.size(); i++) {
-      buildsString += ",\"" + Integer.toString(builds.get(i)) + "\"";
-    }
-    String header = "\"Package\",\"Class\",\"Test\"";
-    header += buildsString;
-
-    StringBuilder exportBuilder = new StringBuilder();
-    exportBuilder
-        .append(header)
-        .append(System.lineSeparator());
-    DecimalFormat decimalFormat = new DecimalFormat("#.###");
-    decimalFormat.setRoundingMode(RoundingMode.CEILING);
-
-    for (PackageInfo packageInfo : packageResults.values()) {
-      String packageName = packageInfo.getName();
-      //loop the classes
-      for (ClassInfo classInfo : packageInfo.getClasses().values()) {
-        String className = classInfo.getName();
-        //loop the tests
-        for (TestCaseInfo testCaseInfo : classInfo.getTests().values()) {
-          String testName = testCaseInfo.getName();
-          exportBuilder.append("\"")
-              .append(packageName)
-              .append("\",\"")
-              .append(className)
-              .append("\",\"")
-              .append(testName)
-              .append("\"");
-
-          Map<Integer, ResultData> buildPackageResults = testCaseInfo.getBuildPackageResults();
-
-          for (Integer buildNumber : buildList) {
-            String data = getCustomStatus("NA");
-            if (buildPackageResults.containsKey(buildNumber)) {
-              ResultData buildResult = buildPackageResults.get(buildNumber);
-              data = isTimeBased
-                  ? decimalFormat.format(buildResult.getTotalTimeTaken())
-                  : getCustomStatus(buildResult.getStatus());
-
-            }
-            exportBuilder.append(",\"").append(data).append("\"");
-          }
-          exportBuilder.append(System.lineSeparator());
-        }
-      }
-    }
-    return exportBuilder.toString();
-  }
-
-  private String getCustomStatus(String status) {
-    ResultStatus resultStatus;
-    try {
-      resultStatus = ResultStatus.valueOf(status);
-    } catch (IllegalArgumentException e) {
-      // Status not recognized, we will return it as is
-      return status;
-    }
-
-    switch (resultStatus) {
-      case PASSED:
-        return getPassedRepresentation();
-      case FAILED:
-        return getFailedRepresentation();
-      case SKIPPED:
-        return getSkippedRepresentation();
-      case NA:
-        return getNaRepresentation();
-      default:
-        return resultStatus.toString();
-    }
-
-  }
-
-  public String getNoOfBuilds() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getNoOfBuilds();
+    return TestResultsAnalyzerExporter.exportToCsv(
+        resultInfo,
+        buildList,
+        Boolean.parseBoolean(isTimeBased)
+    );
   }
 
   public boolean getShowAllBuilds() {
@@ -275,21 +199,6 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
     return TestResultsAnalyzerExtension.DESCRIPTOR.isUseCustomStatusNames();
   }
 
-  public String getPassedRepresentation() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getPassedRepresentation();
-  }
-
-  public String getFailedRepresentation() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getFailedRepresentation();
-  }
-
-  public String getSkippedRepresentation() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getSkippedRepresentation();
-  }
-
-  public String getNaRepresentation() {
-    return TestResultsAnalyzerExtension.DESCRIPTOR.getNaRepresentation();
-  }
 
   public String getPassedColor() {
     return TestResultsAnalyzerExtension.DESCRIPTOR.getPassedColor();
