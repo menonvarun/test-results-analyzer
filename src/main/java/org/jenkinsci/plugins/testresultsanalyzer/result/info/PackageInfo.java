@@ -10,7 +10,7 @@ import org.jenkinsci.plugins.testresultsanalyzer.result.data.ResultData;
 
 public class PackageInfo extends Info {
 
-  protected Map<String, ClassInfo> classes = new TreeMap<>();
+  protected Map<String, ClassInfo> classesByName = new TreeMap<>();
 
   public void putPackageResult(Integer buildNumber, TabulatedResult packageResult, String url) {
     PackageResultData packageResultData = new PackageResultData(packageResult, url);
@@ -24,32 +24,30 @@ public class PackageInfo extends Info {
     return buildResults.get(buildNumber); // may return null if buildNumber is missing
   }
 
-  public Map<String, ClassInfo> getClasses() {
-    return classes;
+  public Map<String, ClassInfo> getClassesByName() {
+    return classesByName;
   }
 
   public void addClasses(Integer buildNumber, TabulatedResult packageResult, String url) {
     for (TestResult classResult : packageResult.getChildren()) {
       String className = classResult.getName();
       ClassInfo classInfo;
-      if (classes.containsKey(className)) {
-        classInfo = classes.get(className);
+      if (classesByName.containsKey(className)) {
+        classInfo = classesByName.get(className);
       } else {
         classInfo = new ClassInfo();
         classInfo.setName(className);
       }
       classInfo.putBuildClassResult(buildNumber, (TabulatedResult) classResult,
           url + "/" + classResult.getSafeName());
-      classes.put(className, classInfo);
+      classesByName.put(className, classInfo);
     }
   }
 
   @Override
   protected JSONObject getChildrenJson() {
     JSONObject json = new JSONObject();
-    for (String className : classes.keySet()) {
-      json.put(className, classes.get(className).getJsonObject());
-    }
+    classesByName.forEach((name, clazz) -> json.put(name, clazz));
     return json;
   }
 

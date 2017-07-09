@@ -17,7 +17,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 
 //TODO:Ignoring the test as they are failing and needs time to debug and fix
-@Ignore
+
 public class AnalyzerPageTest {
 
   @Rule

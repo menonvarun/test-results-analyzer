@@ -3,13 +3,14 @@ package org.jenkinsci.plugins.testresultsanalyzer.result.info;
 import hudson.tasks.test.TabulatedResult;
 import hudson.tasks.test.TestResult;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ClassResultData;
 
 public class ClassInfo extends Info {
 
-  private Map<String, TestCaseInfo> tests = new TreeMap<>();
+  private Map<String, TestCaseInfo> testsByName = new TreeMap<>();
 
   public void putBuildClassResult(Integer buildNumber, TabulatedResult classResult, String url) {
     ClassResultData classResultData = new ClassResultData(classResult, url);
@@ -19,8 +20,8 @@ public class ClassInfo extends Info {
     buildResults.put(buildNumber, classResultData);
   }
 
-  public Map<String, TestCaseInfo> getTests() {
-    return tests;
+  public Map<String, TestCaseInfo> getTestsByName() {
+    return testsByName;
   }
 
   private void addTests(Integer buildNumber, TabulatedResult classResult, String url) {
@@ -28,8 +29,8 @@ public class ClassInfo extends Info {
 
       String testCaseName = testCaseResult.getName();
       TestCaseInfo testCaseInfo;
-      if (tests.containsKey(testCaseName)) {
-        testCaseInfo = tests.get(testCaseName);
+      if (testsByName.containsKey(testCaseName)) {
+        testCaseInfo = testsByName.get(testCaseName);
       } else {
         testCaseInfo = new TestCaseInfo();
         testCaseInfo.setName(testCaseName);
@@ -37,16 +38,16 @@ public class ClassInfo extends Info {
 
       testCaseInfo
           .putTestCaseResult(buildNumber, testCaseResult, url + "/" + testCaseResult.getSafeName());
-      tests.put(testCaseName, testCaseInfo);
+      testsByName.put(testCaseName, testCaseInfo);
     }
   }
 
   @Override
   protected JSONObject getChildrenJson() {
     JSONObject json = new JSONObject();
-    for (String testName : tests.keySet()) {
-      json.put(testName, tests.get(testName).getJsonObject());
-    }
+
+    testsByName.forEach((name, test) -> json.put(name, test.getJsonObject()));
+
     return json;
   }
 }

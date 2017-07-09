@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -39,9 +40,7 @@ public abstract class Info {
 
   protected JSONObject getBuildJson() {
     JSONObject json = new JSONObject();
-    for (Integer buildNumber : buildResults.keySet()) {
-      json.put(buildNumber.toString(), buildResults.get(buildNumber).getJsonObject());
-    }
+    buildResults.forEach((buildNumber, resultData) -> json.put(buildNumber.toString(), resultData));
     return json;
   }
 

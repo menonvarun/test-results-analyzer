@@ -16,7 +16,7 @@ public class TestResultsAnalyzerExporter {
   public static String exportToCsv(ResultInfo resultInfo, List<Integer> builds,
       boolean isTimeBased) {
 
-    Map<String, PackageInfo> packageResults = resultInfo.getPackageResults();
+    Map<String, PackageInfo> packageResults = resultInfo.getPackageResultsByName();
     String buildsString = "";
     for (Integer build : builds) {
       buildsString += ",\"" + build + "\"";
@@ -34,10 +34,10 @@ public class TestResultsAnalyzerExporter {
     for (PackageInfo packageInfo : packageResults.values()) {
       String packageName = packageInfo.getName();
       //loop the classes
-      for (ClassInfo classInfo : packageInfo.getClasses().values()) {
+      for (ClassInfo classInfo : packageInfo.getClassesByName().values()) {
         String className = classInfo.getName();
         //loop the tests
-        for (TestCaseInfo testCaseInfo : classInfo.getTests().values()) {
+        for (TestCaseInfo testCaseInfo : classInfo.getTestsByName().values()) {
           String testName = testCaseInfo.getName();
           exportBuilder.append("\"")
               .append(packageName)
