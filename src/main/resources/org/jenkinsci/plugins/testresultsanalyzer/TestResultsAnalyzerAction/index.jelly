@@ -1,217 +1,239 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:l="/lib/layout">
-<l:layout title="Test Result Graph">
-<st:include it="${it.project}" page="sidepanel.jelly" />
-<st:bind var="remoteAction" value="${it}"/> 
-<l:main-panel>
-<link href="${resURL}/plugin/test-results-analyzer/css/table-style.css" rel="stylesheet" type="text/css"/>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/jquery/js/jquery-1.11.1.min.js"></script>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+  <l:layout title="Test Result Graph">
+    <st:include it="${it.project}" page="sidepanel.jelly"/>
+    <st:bind value="${it}" var="remoteAction"/>
+    <l:main-panel>
+      <link href="${resURL}/plugin/test-results-analyzer/css/table-style.css" rel="stylesheet"
+        type="text/css"/>
+      <script src="${resURL}/plugin/test-results-analyzer/jquery/js/jquery-1.11.1.min.js"
+        type="text/javascript"></script>
 
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/handlebars-v2.0.0.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/highcharts.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/json3-min.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/highchart-exporting.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/highchart-offline-exporting.js"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/handlebars-v2.0.0.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/highcharts.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/json3-min.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/highchart-exporting.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/highchart-offline-exporting.js"
+        type="text/javascript"></script>
 
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/testresult.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/chart-generator.js"></script>
-<script type="text/javascript" src="${resURL}/plugin/test-results-analyzer/js/test-result-analyzer-template.js"></script>
-<script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/testresult.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/chart-generator.js"
+        type="text/javascript"></script>
+      <script src="${resURL}/plugin/test-results-analyzer/js/test-result-analyzer-template.js"
+        type="text/javascript"></script>
+      <script>
 
-var $j = jQuery.noConflict();
-</script>
-<style type="text/css">
-    .failed {
+        var $j = jQuery.noConflict();
+      </script>
+      <style type="text/css">
+        .failed {
         background-color: ${it.failedColor};
-    }
+        }
 
-    .passed {
+        .passed {
         background-color: ${it.passedColor};
-    }
+        }
 
-    .skipped{
+        .skipped{
         background-color: ${it.skippedColor};
-    }
+        }
 
-    .no_status{
+        .no_status{
         background-color: ${it.naColor};
-    }
-</style>
-<j:set var="temp" value="${it.jsonLoadData}"/>
-<j:set var="builds" value="${it.builds}"/>
+        }
+      </style>
+      <j:set value="${it.jsonLoadData}" var="temp"/>
+      <j:set value="${it.builds}" var="builds"/>
 
-<button id="settingsmenubutton">Options</button>
-<div id="settingsmenu" style="display: none;">
-	<table>
-		<tr>
-			<td>Number of builds:</td>
-			<td>
-				<input id="noofbuilds" type="number" value="${it.noOfBuilds}" min="1" step="1" disabled="${it.showAllBuilds}"/>
-				(all: <input id="allnoofbuilds" type="checkbox" checked="${it.showAllBuilds}" />)
-			</td>
-		</tr>
-		<tr>
-			<td>Display run time for each test:</td>
-			<td><input type="checkbox" id="show-build-durations" name="show-build-durations" checked="${it.showBuildTime}"/></td>
-		</tr>
-		<tr>
-			<td>Chart type:</td>
-			<td>
-				<input id="linegraph" type="checkbox" checked="${it.showLineGraph}" /> Line
-				<input id="bargraph" type="checkbox" checked="${it.showBarGraph}" /> Bar
-				<input id="piegraph" type="checkbox" checked="${it.showPieGraph}" /> Pie
-			</td>
-		</tr>
-		<tr>
-			<td>Chart Data Type:</td>
-			<td>
-				<select id="chartDataType">
-					<option value="passfail">Passes/Failures</option>
-					<option value="runtime">Test Runtimes</option>
-				</select>
-			</td>
-		</tr>
-	</table>
-	<div>
-		<button id="getbuildreport">Update</button>
-	</div>
-</div>
-<button id="downloadCSV" >Download Test (CSV)</button>
-Search: <input id="filter" class="table-filter" type="text" placeholder="Test/Class/Package" onkeyup="searchTests()"/>
+      <button id="settingsmenubutton">Options</button>
+      <div style="display: none;" id="settingsmenu">
+        <table>
+          <tr>
+            <td>Number of builds:</td>
+            <td>
+              <input disabled="${it.showAllBuilds}" id="noofbuilds" min="1" step="1" type="number"
+                value="${it.noOfBuilds}"/>
+              (all:<input checked="${it.showAllBuilds}" id="allnoofbuilds" type="checkbox"/>)
+            </td>
+          </tr>
+          <tr>
+            <td>Display run time for each test:</td>
+            <td>
+              <input checked="${it.showBuildTime}" id="show-build-durations"
+                name="show-build-durations"
+                type="checkbox"/>
+            </td>
+          </tr>
+          <tr>
+            <td>Chart type:</td>
+            <td>
+              <input checked="${it.showLineGraph}" id="linegraph" type="checkbox"/>
+              Line
+              <input checked="${it.showBarGraph}" id="bargraph" type="checkbox"/>
+              Bar
+              <input checked="${it.showPieGraph}" id="piegraph" type="checkbox"/>
+              Pie
+            </td>
+          </tr>
+          <tr>
+            <td>Chart Data Type:</td>
+            <td>
+              <select id="chartDataType">
+                <option value="passfail">Passes/Failures</option>
+                <option value="runtime">Test Runtimes</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+        <div>
+          <button id="getbuildreport">Update</button>
+        </div>
+      </div>
+      <button id="downloadCSV">Download Test (CSV)</button>
+      Search:
+      <input class="table-filter" id="filter" onkeyup="searchTests()"
+        placeholder="Test/Class/Package"
+        type="text"/>
 
-<div class="extrabuttons">
-	<button id="expandall">Expand All</button>
-	<button id="collapseall">Collapse All</button>
-</div>
-<br/>
-<div id="tree">
-    <div id="table-loading" style="display: none;">
-        <img src="${resURL}/plugin/test-results-analyzer/images/loading2.gif"/>
-    </div>
-   <div class="table">
+      <div class="extrabuttons">
+        <button id="expandall">Expand All</button>
+        <button id="collapseall">Collapse All</button>
+      </div>
+      <br/>
+      <div id="tree">
+        <div style="display: none;" id="table-loading">
+          <img src="${resURL}/plugin/test-results-analyzer/images/loading2.gif"/>
+        </div>
+        <div class="table">
 
-   </div>
-</div>
-<br/>
-<br/>
+        </div>
+      </div>
+      <br/>
+      <br/>
 
-<div id="charts">
-   <div id="linechart">
+      <div id="charts">
+        <div id="linechart">
 
-   </div>
-   <br/>
+        </div>
+        <br/>
 
-   <div id="piechart">
+        <div id="piechart">
 
-   </div>
-<br/>
+        </div>
+        <br/>
 
-   <div id="barchart">
+        <div id="barchart">
 
-   </div>
+        </div>
 
-</div>
-<div id="builddetail">
+      </div>
+      <div id="builddetail">
 
-</div>
+      </div>
 
-<script>
-	var runtimeLowThreshold = "${it.runTimeLowThreshold}";
-	var runtimeHighThreshold = "${it.runTimeHighThreshold}";
-    var customStatuses = {
+      <script>
+        var runtimeLowThreshold = "${it.runTimeLowThreshold}";
+        var runtimeHighThreshold = "${it.runTimeHighThreshold}";
+        var customStatuses = {
         'PASSED':'PASSED',
         'SKIPPED':'SKIPPED',
         'FAILED':'FAILED',
         'N/A':'N/A'
-    }
-	function generateCharts() {
-		var chartType = {
-			type: jQuery("#chartDataType").val(),
-			line: jQuery('#linegraph').is(':checked'),
-			bar: jQuery('#bargraph').is(':checked'),
-			pie: jQuery('#piegraph').is(':checked')
-		}
-		generateChart(chartType);
+        }
+        function generateCharts() {
+        var chartType = {
+        type: jQuery("#chartDataType").val(),
+        line: jQuery('#linegraph').is(':checked'),
+        bar: jQuery('#bargraph').is(':checked'),
+        pie: jQuery('#piegraph').is(':checked')
+        }
+        generateChart(chartType);
 
-		//fixes Jenkins issue where page content is not correctly placed until the window is resized
-		window.dispatchEvent(new Event('resize'));
-	}
+        //fixes Jenkins issue where page content is not correctly placed until the window is resized
+        window.dispatchEvent(new Event('resize'));
+        }
 
-	jQuery(document).ready(function () {
-		jQuery("#allnoofbuilds")[0].checked = ${it.showAllBuilds};
-		jQuery("#show-build-durations")[0].checked = ${it.showBuildTime};
-		jQuery("#linegraph")[0].checked = ${it.showLineGraph};
-		jQuery("#bargraph")[0].checked = ${it.showBarGraph};
-		jQuery("#piegraph")[0].checked = ${it.showPieGraph};
-		jQuery("#noofbuilds").attr('disabled', ${it.showAllBuilds});
+        jQuery(document).ready(function () {
+        jQuery("#allnoofbuilds")[0].checked = ${it.showAllBuilds};
+        jQuery("#show-build-durations")[0].checked = ${it.showBuildTime};
+        jQuery("#linegraph")[0].checked = ${it.showLineGraph};
+        jQuery("#bargraph")[0].checked = ${it.showBarGraph};
+        jQuery("#piegraph")[0].checked = ${it.showPieGraph};
+        jQuery("#noofbuilds").attr('disabled', ${it.showAllBuilds});
 
-		if ("${it.chartDataType}" === "runtime") {
-			jQuery("#chartDataType").val("runtime");
-			jQuery("#bargraph").attr('disabled', true);
-		} else {
-			jQuery("#chartDataType").val("passfail");
-		}
-		setCustomStatuses();
-		populateTemplate();
-	});
+        if ("${it.chartDataType}" === "runtime") {
+        jQuery("#chartDataType").val("runtime");
+        jQuery("#bargraph").attr('disabled', true);
+        } else {
+        jQuery("#chartDataType").val("passfail");
+        }
+        setCustomStatuses();
+        populateTemplate();
+        });
 
-	jQuery("#settingsmenubutton").click(function () {
-		jQuery("#settingsmenu").slideToggle(400, function () {
-			//fixes Jenkins issue where page content is not correctly placed until the window is resized
-			window.dispatchEvent(new Event('resize'));
-		});
+        jQuery("#settingsmenubutton").click(function () {
+        jQuery("#settingsmenu").slideToggle(400, function () {
+        //fixes Jenkins issue where page content is not correctly placed until the window is resized
+        window.dispatchEvent(new Event('resize'));
+        });
 
-		//fixes Jenkins issue where page content is not correctly placed until the window is resized
-		window.dispatchEvent(new Event('resize'));
-	});
+        //fixes Jenkins issue where page content is not correctly placed until the window is resized
+        window.dispatchEvent(new Event('resize'));
+        });
 
-	jQuery("#allnoofbuilds").change(function () {
-		jQuery("#noofbuilds").attr('disabled', this.checked);
-	});
+        jQuery("#allnoofbuilds").change(function () {
+        jQuery("#noofbuilds").attr('disabled', this.checked);
+        });
 
-	jQuery("#chartDataType").change(function (e) {
-		jQuery("#bargraph").attr('disabled', e.target.value == "runtime");
-	});
+        jQuery("#chartDataType").change(function (e) {
+        jQuery("#bargraph").attr('disabled', e.target.value == "runtime");
+        });
 
-	jQuery("#downloadCSV").click(function () {
-	    var noOfBuilds = "-1";
+        jQuery("#downloadCSV").click(function () {
+        var noOfBuilds = "-1";
 
         if (!jQuery("#allnoofbuilds").is(":checked")) {
-            noOfBuilds = jQuery("#noofbuilds").val();
+        noOfBuilds = jQuery("#noofbuilds").val();
         }
-        remoteAction.getExportCSV(displayValues, noOfBuilds, function(t) {
-            download("Test Results.csv", t.responseObject());
+        remoteAction.getExportCsv(displayValues, noOfBuilds, function(t) {
+        download("Test Results.csv", t.responseObject());
         })
-    });
+        });
 
-	jQuery("#getbuildreport").click(function () {
-		populateTemplate();
-	});
-	
-	jQuery("#expandall").click(function () {
-		expandAll();
-	});
-	
-	jQuery("#collapseall").click(function () {
-		collapseAll();
-	});
+        jQuery("#getbuildreport").click(function () {
+        populateTemplate();
+        });
 
-    function setCustomStatuses(){
+        jQuery("#expandall").click(function () {
+        expandAll();
+        });
+
+        jQuery("#collapseall").click(function () {
+        collapseAll();
+        });
+
+        function setCustomStatuses(){
         customStatuses['PASSED'] = "${it.passedRepresentation}";
         customStatuses['SKIPPED'] = "${it.skippedRepresentation}";
         customStatuses['FAILED'] = "${it.failedRepresentation}";
         customStatuses['N/A'] = "${it.naRepresentation}";
-    }
+        }
 
-	function download(filename, text) {
-		var element = document.createElement('a');
-		element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-		element.setAttribute('download', filename);
-		element.style.display = 'none';
-		document.body.appendChild(element);
-		element.click();	
-		document.body.removeChild(element);
-	}
-</script>
-  </l:main-panel>
+        function download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        }
+      </script>
+    </l:main-panel>
   </l:layout>
 </j:jelly>
