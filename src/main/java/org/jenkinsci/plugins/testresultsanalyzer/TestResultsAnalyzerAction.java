@@ -5,6 +5,7 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Actionable;
 import hudson.model.Run;
+import hudson.tasks.test.AggregatedTestResultAction;
 import hudson.tasks.test.TabulatedResult;
 import hudson.tasks.test.AbstractTestResultAction;
 import hudson.tasks.test.TestResult;
@@ -19,6 +20,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import org.apache.log4j.Logger;
+import org.jenkinsci.plugins.testresultsanalyzer.config.UserConfig;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ResultInfo;
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ResultData;
 import org.jenkinsci.plugins.testresultsanalyzer.result.info.ClassInfo;
@@ -133,48 +135,78 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 	}
 
 	public boolean isUpdated() {
-		int latestBuildNumber = project.getLastBuild().getNumber();
+		Run lastBuild = project.getLastBuild();
+		if (lastBuild == null) {
+			return false;
+		}
+
+		int latestBuildNumber = lastBuild.getNumber();
 		return !(builds.contains(latestBuildNumber));
 	}
 
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	public void getJsonLoadData() {
-		if (isUpdated()) {
-			resultInfo = new ResultInfo();
-			builds = new ArrayList<Integer>();
-			RunList<Run> runs = project.getBuilds();
-			Iterator<Run> runIterator = runs.iterator();
-			while (runIterator.hasNext()) {
-				Run run = runIterator.next();
-				if(run.isBuilding()) {
-					continue;
-				}
-				int buildNumber = run.getNumber();
-				String buildUrl = project.getBuildByNumber(buildNumber).getUrl();
-				builds.add(run.getNumber());
-				List<AbstractTestResultAction> testActions = run.getActions(hudson.tasks.test.AbstractTestResultAction.class);
-				for (hudson.tasks.test.AbstractTestResultAction testAction : testActions) {
-					try {
-						TabulatedResult testResult = (TabulatedResult) testAction.getResult();
-						Collection<? extends TestResult> packageResults = testResult.getChildren();
-						for (TestResult packageResult : packageResults) { // packageresult
-							resultInfo.addPackage(buildNumber, (TabulatedResult) packageResult, Jenkins.getInstance().getRootUrl() + buildUrl);
-						}
-					} catch (ClassCastException e) {
-						LOG.info("Got ClassCast exception while converting results to Tabulated Result from action: " + testAction.getClass().getName() + ". Ignoring as we only want test results for processing.");
-					}
+		if (!isUpdated()) {
+			return;
+		}
+
+		resultInfo = new ResultInfo();
+		builds = new ArrayList<Integer>();
+
+		RunList<Run> runs = project.getBuilds();
+		for (Run run : runs) {
+			if(run.isBuilding()) {
+				continue;
+			}
+
+			int buildNumber = run.getNumber();
+			builds.add(buildNumber);
+
+			List<AbstractTestResultAction> testActions = run.getActions(AbstractTestResultAction.class);
+			for (AbstractTestResultAction testAction : testActions) {
+				if (AggregatedTestResultAction.class.isInstance(testAction)) {
+					addTestResults(buildNumber, (AggregatedTestResultAction) testAction);
+				} else {
+					addTestResult(buildNumber, run, testAction, testAction.getResult());
 				}
 			}
 		}
 	}
 
+	private void addTestResults(int buildNumber, AggregatedTestResultAction testAction) {
+		List<AggregatedTestResultAction.ChildReport> childReports = testAction.getChildReports();
+		for (AggregatedTestResultAction.ChildReport childReport : childReports) {
+			addTestResult(buildNumber, childReport.run, testAction, childReport.result);
+		}
+	}
+
+	private void addTestResult(int buildNumber, Run run, AbstractTestResultAction testAction, Object result) {
+		if (run == null || result == null) {
+			return;
+		}
+
+		try {
+			TabulatedResult testResult = (TabulatedResult) result;
+			Collection<? extends TestResult> packageResults = testResult.getChildren();
+			for (TestResult packageResult : packageResults) { // packageresult
+				resultInfo.addPackage(buildNumber, (TabulatedResult) packageResult, Jenkins.getInstance().getRootUrl() + run.getUrl());
+			}
+		} catch (ClassCastException e) {
+			LOG.info("Got ClassCast exception while converting results to Tabulated Result from action: " + testAction.getClass().getName() + ". Ignoring as we only want test results for processing.");
+		}
+	}
+
     @JavaScriptMethod
-    public JSONObject getTreeResult(String noOfBuildsNeeded) {
-        int noOfBuilds = getNoOfBuildRequired(noOfBuildsNeeded);
+    public JSONObject getTreeResult(UserConfig userConfig) {
+		if (resultInfo == null) {
+			return new JSONObject();
+		}
+
+        int noOfBuilds = getNoOfBuildRequired(userConfig.getNoOfBuildsNeeded());
         List<Integer> buildList = getBuildList(noOfBuilds);
 
         JsTreeUtil jsTreeUtils = new JsTreeUtil();
-        return jsTreeUtils.getJsTree(buildList, resultInfo);
+		return jsTreeUtils.getJsTree(buildList, resultInfo, userConfig.isHideConfigMethods());
     }
 	
 	@JavaScriptMethod
@@ -269,6 +301,10 @@ public class TestResultsAnalyzerAction extends Actionable implements Action {
 
 	public boolean getShowBuildTime() {
 		return TestResultsAnalyzerExtension.DESCRIPTOR.getShowBuildTime();
+	}
+
+	public boolean getHideConfigurationMethods() {
+		return TestResultsAnalyzerExtension.DESCRIPTOR.getHideConfigurationMethods();
 	}
 
 	public String getChartDataType() {

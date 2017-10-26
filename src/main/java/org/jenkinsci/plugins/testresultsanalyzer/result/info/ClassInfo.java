@@ -6,8 +6,6 @@ import hudson.tasks.test.TestResult;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.sf.json.JSONObject;
-
 import org.jenkinsci.plugins.testresultsanalyzer.result.data.ClassResultData;
 
 public class ClassInfo extends Info {
@@ -17,7 +15,6 @@ public class ClassInfo extends Info {
 	public void putBuildClassResult(Integer buildNumber, TabulatedResult classResult, String url) {
 		ClassResultData classResultData = new ClassResultData(classResult, url);
 
-		evaluateStatusses(classResult);
 		addTests(buildNumber, classResult, url);
 		this.buildResults.put(buildNumber, classResultData);
 	}
@@ -46,11 +43,7 @@ public class ClassInfo extends Info {
 	}
 
 	@Override
-	protected JSONObject getChildrensJson() {
-		JSONObject json = new JSONObject();
-		for (String testName : tests.keySet()) {
-			json.put(testName, tests.get(testName).getJsonObject());
-		}
-		return json;
+	public Map<String, TestCaseInfo> getChildren() {
+		return tests;
 	}
 }

@@ -5,8 +5,6 @@ import hudson.tasks.test.TabulatedResult;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.sf.json.JSONObject;
-
 public class ResultInfo {
 
 	private Map<String, PackageInfo> packageResults = new TreeMap<String, PackageInfo>();
@@ -23,14 +21,6 @@ public class ResultInfo {
 		}
 		packageInfo.putPackageResult(buildNumber, packageResult, url + getResultUrl(packageResult) +"/" + packageResult.getSafeName());
 		packageResults.put(packageName, packageInfo);
-	}
-
-	public JSONObject getJsonObject() {
-		JSONObject json = new JSONObject();
-		for (String packageName : packageResults.keySet()) {
-			json.put(packageName, packageResults.get(packageName).getJsonObject());
-		}
-		return json;
 	}
 
 	public Map<String, PackageInfo> getPackageResults() {
