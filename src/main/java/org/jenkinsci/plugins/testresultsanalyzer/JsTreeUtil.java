@@ -25,7 +25,10 @@ public class JsTreeUtil {
 
         JSONArray results = new JSONArray();
         for (Map.Entry<String, ? extends Info> entry : resultInfo.getPackageResults().entrySet()) {
-            results.add(createJson(builds, entry.getValue(), hideConfigMethods));
+            JSONObject resultJson = createJson(builds, entry.getValue(), hideConfigMethods);
+            if (resultJson != null) {
+                results.add(resultJson);
+            }
         }
         tree.put("results", results);
 
@@ -34,12 +37,23 @@ public class JsTreeUtil {
 
     private JSONObject createJson(List<Integer> builds, Info info, boolean hideConfigMethods) {
         JSONObject baseJson = new JSONObject();
-
-        baseJson.put("text", info.getName());
-        baseJson.put("buildResults", getBuilds(builds, info));
-        baseJson.put("children", getChildren(builds, info, hideConfigMethods));
-
-        return baseJson;
+        int NAbuilds = 0;
+        
+        for (Integer buildNumber : builds) {
+            if (info.getBuildResult(buildNumber) == null) {
+                NAbuilds++;
+            }
+        }
+        
+        if (NAbuilds != builds.size()) {
+            baseJson.put("text", info.getName());
+            baseJson.put("buildResults", getBuilds(builds, info));
+            baseJson.put("children", getChildren(builds, info, hideConfigMethods));
+            
+            return baseJson;
+        } else {
+            return null;
+        }
     }
 
     private JSONArray getBuilds(List<Integer> builds, Info info) {
@@ -58,7 +72,10 @@ public class JsTreeUtil {
         JSONArray children = new JSONArray();
         for (Map.Entry<String, ? extends Info> entry : childrenInfo.entrySet()) {
             if (!hideConfigMethods || !entry.getValue().isConfig()) {
-                children.add(createJson(builds, entry.getValue(), hideConfigMethods));
+                JSONObject childrenJson = createJson(builds, entry.getValue(), hideConfigMethods);
+                if (childrenJson != null) {
+                    children.add(childrenJson);
+                }
             }
         }
 
